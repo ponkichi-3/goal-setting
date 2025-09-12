@@ -439,23 +439,23 @@
                 
                 <div class="section">
                     <h3>本日までの設定目標とその進捗状況</h3>
-                    <textarea id="goalInput" rows="6">【本日までの設定目標】
+                    <textarea id="goalInput" rows="3" placeholder="これまでに設定した目標と、その達成度・進捗状況を書きましょう">【本日までの設定目標】
 【達成度・進捗状況】
 【実施した工夫の分析】</textarea>
-
-    <p style="margin-top: 15px; text-align: center;">自己評価（1〜10）</p>
+                    <p style="margin-top: 15px; text-align: center;">自己評価（1〜10）</p>
     <div class="star-rating" id="starRating">
         <!-- 星は動的に生成 -->
     </div>
-    <div style="text-align:center; font-size:12px; color:#666; margin-top:4px;">※自己評価も、このセクションの「進捗状況を保存」で保存されます</div>
-    <button onclick="saveGoal()" style="margin-top: 10px;">進捗状況を保存</button>
+    <div style="text-align:center; font-size:12px; color:#666; margin-top:4px;">※自己評価は「進捗状況を保存」で保存されます</div>
+<button onclick="saveGoal()" style="margin-top: 10px;">進捗状況を保存</button>
                 </div>
                 
                 <div class="section">
                     <h3>次回授業までの目標と達成のための工夫</h3>
-                    <textarea id="reflectionInput" rows="4">【次回授業までの進度目標】
+                    <textarea id="reflectionInput" rows="4" placeholder="次回までの目標と、それを達成するための工夫を書きましょう">【次回授業までの進度目標】
 【達成のための工夫】</textarea>
-<button onclick="saveReflection()" style="margin-top: 10px;">目標設定を保存</button>
+                    
+                    <button onclick="saveReflection()" style="margin-top: 10px;">目標設定を保存</button>
                 </div>
             </div>
             
@@ -743,57 +743,62 @@ setScore(0);
         }
         
         // 目標保存
-        async function saveGoal() {
-            const goal = document.getElementById('goalInput').value.trim();
-            if (!goal) {
-                showToast('目標を入力してください', true);
-                return;
-            }
-            
-            try {
-                const result = await apiCall({
-                    action: 'saveGoal',
-                    studentKey: currentUser.studentKey,
-                    date: document.getElementById('todayDate').value,
-                    goal: goal
-                ,
-                    score: selectedScore
-                });
-                
-                if (result.ok) {
-                    showToast('進捗状況を保存しました');
-                } else {
-                    showToast(result.message || '保存に失敗しました', true);
-                }
-            } catch (error) {
-                showToast('ネットワークエラーが発生しました', true);
-            }
+        
+async function saveGoal() {
+    const goal = document.getElementById('goalInput').value.trim();
+    if (!goal) {
+        showToast('目標を入力してください', true);
+        return;
+    }
+    if (selectedScore === 0) {
+        showToast('自己評価を選択してください', true);
+        return;
+    }
+    try {
+        const result = await apiCall({
+            action: 'saveGoal',
+            studentKey: currentUser.studentKey,
+            date: document.getElementById('todayDate').value,
+            goal: goal,
+            score: selectedScore
+        });
+        if (result.ok) {
+            showToast('進捗状況を保存しました');
+        } else {
+            showToast(result.message || '保存に失敗しました', true);
         }
+    } catch (error) {
+        showToast('ネットワークエラーが発生しました', true);
+    }
+}
+
         
         // 振り返り保存
-        async function saveReflection() {
-            const reflection = document.getElementById('reflectionInput').value.trim();
-            if (!reflection) {
-                showToast('次回までの目標と工夫を入力してください', true);
-                return;
-            }
-try {
-                const result = await apiCall({
-                    action: 'saveReflection',
-                    studentKey: currentUser.studentKey,
-                    date: document.getElementById('todayDate').value,
-                    reflection: reflection,
-                });
-                
-                if (result.ok) {
-                    showToast('目標設定を保存しました');
-                } else {
-                    showToast(result.message || '保存に失敗しました', true);
-                }
-            } catch (error) {
-                showToast('ネットワークエラーが発生しました', true);
-            }
+        
+async function saveReflection() {
+    const reflection = document.getElementById('reflectionInput').value.trim();
+    if (!reflection) {
+        showToast('振り返りを入力してください', true);
+        return;
+    }
+    try {
+        const result = await apiCall({
+            action: 'saveReflection',
+            studentKey: currentUser.studentKey,
+            date: document.getElementById('todayDate').value,
+            reflection: reflection
+            // ★scoreは送信しない（星は進捗状況の保存で保存）
+        });
+        if (result.ok) {
+            showToast('目標設定を保存しました');
+        } else {
+            showToast(result.message || '保存に失敗しました', true);
         }
+    } catch (error) {
+        showToast('ネットワークエラーが発生しました', true);
+    }
+}
+
         
         // 日付指定で記録を見る
         async function loadDateRecord() {
